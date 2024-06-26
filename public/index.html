@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FTC Hangman Game</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>FTC Team Name Hangman</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<h1>FTC Hangman Game</h1>
+<h1>FTC Team Name Hangman</h1>
 <div id="game-container">
-    <p id="word-display"></p>
+    <p id="word"></p>
     <p id="message"></p>
-    <input type="text" id="guess-input" maxlength="1">
-    <button onclick="makeGuess()">Guess</button>
-    <p>Wrong guesses: <span id="wrong-guesses"></span></p>
+    <input type="text" id="guess" maxlength="1">
+    <button id="submit-guess">Guess</button>
+    <p id="remaining">Remaining attempts: <span id="attempts"></span></p>
 </div>
 <script src="script.js"></script>
 </body>

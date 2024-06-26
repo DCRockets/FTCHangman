@@ -1,63 +1,69 @@
-let chosenWord = "";
-let displayWord = "";
-let wrongGuesses = [];
-let correctGuesses = [];
+document.addEventListener('DOMContentLoaded', () => {
+    fetch('/api/team-names')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(teamNames => {
+            if (!Array.isArray(teamNames) || teamNames.length === 0) {
+                throw new Error('Team names array is empty or invalid');
+            }
+            console.log('Fetched team names:', teamNames); // Log the fetched team names to the console
+            startGame(teamNames);
+        })
+        .catch(error => console.error('Error fetching team names:', error));
+});
 
-async function fetchTeamNames() {
-    try {
-        const response = await fetch('/api/team-names');
-        const teamNames = await response.json();
-        chosenWord = teamNames[Math.floor(Math.random() * teamNames.length)].toUpperCase();
-        displayWord = chosenWord.replace(/./g, "_ ");
-        document.getElementById('word-display').textContent = displayWord;
-    } catch (error) {
-        console.error('Error fetching team names:', error);
+function startGame(teamNames) {
+    let randomTeam = teamNames[Math.floor(Math.random() * teamNames.length)];
+    if (!randomTeam) {
+        console.error('Random team name is undefined or empty');
+        return;
     }
-}
+    console.log('Selected team name:', randomTeam); // Log the selected team name
 
-function makeGuess() {
-    const guessInput = document.getElementById('guess-input');
-    const guess = guessInput.value.toUpperCase();
+    let word = randomTeam.toUpperCase();
+    let guessedWord = word.replace(/./g, '_');
+    let attempts = 6;
 
-    if (guess && !wrongGuesses.includes(guess) && !correctGuesses.includes(guess)) {
-        if (chosenWord.includes(guess)) {
-            correctGuesses.push(guess);
-            updateDisplayWord();
-        } else {
-            wrongGuesses.push(guess);
-            document.getElementById('wrong-guesses').textContent = wrongGuesses.join(", ");
+    document.getElementById('word').innerText = guessedWord;
+    document.getElementById('attempts').innerText = attempts;
+
+    document.getElementById('submit-guess').addEventListener('click', () => {
+        let guess = document.getElementById('guess').value.toUpperCase();
+        if (guess.length !== 1) {
+            document.getElementById('message').innerText = 'Please enter a single letter.';
+            return;
         }
-    }
 
-    guessInput.value = '';
-    checkGameStatus();
-}
+        let newGuessedWord = '';
+        let correctGuess = false;
 
-function updateDisplayWord() {
-    let updatedDisplayWord = "";
-    for (let char of chosenWord) {
-        if (correctGuesses.includes(char)) {
-            updatedDisplayWord += char + " ";
-        } else {
-            updatedDisplayWord += "_ ";
+        for (let i = 0; i < word.length; i++) {
+            if (word[i] === guess) {
+                newGuessedWord += guess;
+                correctGuess = true;
+            } else {
+                newGuessedWord += guessedWord[i];
+            }
         }
-    }
-    document.getElementById('word-display').textContent = updatedDisplayWord;
-}
 
-function checkGameStatus() {
-    if (document.getElementById('word-display').textContent.replace(/\s/g, '') === chosenWord) {
-        document.getElementById('message').textContent = "Congratulations! You've guessed the team name!";
-        disableInput();
-    } else if (wrongGuesses.length >= 6) {
-        document.getElementById('message').textContent = `Game Over! The team name was ${chosenWord}.`;
-        disableInput();
-    }
-}
+        guessedWord = newGuessedWord;
+        document.getElementById('word').innerText = guessedWord;
 
-function disableInput() {
-    document.getElementById('guess-input').disabled = true;
-    document.querySelector('button').disabled = true;
-}
+        if (!correctGuess) {
+            attempts--;
+        }
 
-document.addEventListener('DOMContentLoaded', fetchTeamNames);
+        document.getElementById('attempts').innerText = attempts;
+        document.getElementById('guess').value = '';
+
+        if (guessedWord === word) {
+            document.getElementById('message').innerText = 'Congratulations! You guessed the team name!';
+        } else if (attempts === 0) {
+            document.getElementById('message').innerText = `Game over! The team name was ${word}.`;
+        }
+    });
+}
